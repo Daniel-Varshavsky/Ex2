@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import NewsCard from "../components/NewsCard";
+import Link from "next/link";
 
 function isoDateDaysAgo(days) {
   const d = new Date();
@@ -53,9 +54,14 @@ export default function HomePage() {
         </div>
       </header>
 
+      <Link href="/settings" className="settingsBtn" aria-label="Settings">
+        ⚙️
+      </Link>
+
+
       {err ? (
         <section className="panel">
-          <div className="panelTitle">Couldn’t load feed</div>
+          <div className="panelTitle">Couldn't load feed</div>
           <div className="panelText">{err}</div>
         </section>
       ) : null}

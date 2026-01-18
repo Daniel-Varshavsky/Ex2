@@ -69,3 +69,17 @@
 .openBtn:hover{
   background: rgba(0,0,0,0.06);
 }
+
+.summarizeBtn {
+  margin-top: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.summarizeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}

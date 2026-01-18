@@ -1,5 +1,18 @@
+let cache = {
+  data: null,
+  timestamp: 0,
+};
+
+const TTL = 5 * 60 * 1000; // 5 minutes
+
 export async function GET() {
   try {
+  const now = Date.now();
+
+    if (cache.data && now - cache.timestamp < TTL) {
+      return Response.json(cache.data);
+    }
+
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       .toISOString()
       .slice(0, 10);
@@ -11,10 +24,16 @@ export async function GET() {
 
     const r = await fetch(url);
     const j = await r.json();
-    return Response.json(j.items || []);
+
+    const items = j.items || [];
+
+    cache = {
+      data: items,
+      timestamp: now,
+    };
+
+    return Response.json(items);
   } catch {
-    return Response.json([
-      { id: 1, full_name: "demo/ai", description: "fetch failed" },
-    ]);
+    return Response.json([], { status: 200 });
   }
 }
