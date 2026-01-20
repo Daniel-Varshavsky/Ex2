@@ -40,7 +40,7 @@ export default function NewsCard({ repo }) {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/chatGPT", {
+      const res = await fetch("/api/groq", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
