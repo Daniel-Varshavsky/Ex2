@@ -28,13 +28,15 @@ export default function Settings() {
       <section className="settingsCard">
         <h1 className="settingsTitle">Settings</h1>
 
-        <label className="settingsLabel">OpenAI API Key</label>
+        <label className="settingsLabel">Groq API Key</label>
 
         <input
           className="settingsInput"
-          placeholder="sk-..."
+          type="password"
+          placeholder="gsk-..."
           value={key}
           onChange={(e) => setKey(e.target.value)}
+          autoComplete="off"
         />
 
         <button className="settingsSaveBtn" onClick={saveKey}>
