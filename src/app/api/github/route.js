@@ -25,7 +25,22 @@ export async function GET() {
     const r = await fetch(url);
     const j = await r.json();
 
-    const items = j.items || [];
+    const items = (j.items || []).map((r) => ({
+      id: `gh-${r.id}`,
+      source: "github",
+
+      title: r.full_name,
+      description: r.description || "No description provided.",
+      url: r.html_url,
+
+      stars: r.stargazers_count ?? 0,
+      language: r.language || "",
+
+      owner: r.owner?.login || "",
+      avatar: r.owner?.avatar_url || "",
+
+      updated_at: r.pushed_at,
+    }));
 
     cache = {
       data: items,

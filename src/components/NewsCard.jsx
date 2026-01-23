@@ -15,12 +15,28 @@ export default function NewsCard({ repo }) {
   );
   const [loading, setLoading] = useState(false);
 
-  const title = repo?.full_name || repo?.name || "Untitled";
-  const url = repo?.html_url || "#";
-  const stars = repo?.stargazers_count ?? 0;
-  const lang = repo?.language || "";
-  const owner = repo?.owner?.login || "";
-  const avatar = repo?.owner?.avatar_url || "";
+  const title = repo.title;
+  const url = repo.url;
+  const stars = repo.stars;
+  const lang = repo.language;
+  const owner = repo.owner;
+  const avatar =
+  repo.avatar ||
+  (repo.source === "huggingface"
+    ? "/hf.svg"
+    : "/github.png");
+  const source = repo.source;
+
+  const provider = localStorage.getItem("AI_PROVIDER") || "groq";
+
+  const endpointMap = {
+    Groq: "/api/groq",
+    OpenAI: "/api/openai",
+    Anthropic: "/api/anthropic",
+  };
+
+  const endpoint = endpointMap[provider];
+  
 
   async function summarize() {
     const now = Date.now();
@@ -40,7 +56,7 @@ export default function NewsCard({ repo }) {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/groq", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,6 +88,9 @@ export default function NewsCard({ repo }) {
               {title}
             </a>
             <div className={styles.meta}>
+              <span className={styles.source}>
+                {source === "github" ? "GitHub" : "Hugging Face"}
+              </span>
               <span className={styles.owner}>{owner}</span>
               <span className={styles.dot}>•</span>
               <span className={styles.stars}>★ {formatStars(stars)}</span>

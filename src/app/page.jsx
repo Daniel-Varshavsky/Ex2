@@ -23,7 +23,7 @@ export default function HomePage() {
       setLoading(true);
 
       try {
-        const res = await fetch("/api/github", { cache: "no-store" });
+        const res = await fetch("/api/feed", { cache: "no-store" });
 
         // 👇 דיבוג: תראה מה השרת החזיר
         const text = await res.text();

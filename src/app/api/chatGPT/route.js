@@ -23,7 +23,7 @@ export async function POST(req) {
       },
       body: JSON.stringify({
         model: "gpt-4.1-mini",
-        input: `Summarize the following text in up to 3 short lines:\n\n${text}`,
+        input: `Summarize the following text in English, in 3 short lines. Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}`,
       }),
     });
 
