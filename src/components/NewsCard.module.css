@@ -53,6 +53,7 @@
   border-radius: 6px;
   background: #222;
   color: #fff;
+  white-space: nowrap;
 }
 
 .owner,
