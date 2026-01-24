@@ -15,15 +15,22 @@ export async function POST(req) {
       return Response.json({ summary: cached.value });
     }
 
-    const r = await fetch("https://api.openai.com/v1/responses", {
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        input: `Summarize the following text in English, in 3 short lines. Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}`,
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user", 
+            content: `Summarize the following text in English, in 3 short lines. Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}`
+          }
+        ],
+        max_tokens: 100,
+        temperature: 0.3,
       }),
     });
 
@@ -31,12 +38,14 @@ export async function POST(req) {
 
     if (!r.ok) {
       console.error("OpenAI error:", j);
+      return Response.json(
+        { error: j.error?.message || "OpenAI request failed" },
+        { status: r.status }
+      );
     }
 
-    const summary =
-      j.output_text ??
-      j.output?.[0]?.content?.[0]?.text ??
-      "";
+    // ✅ CORRECT response parsing
+    const summary = j.choices?.[0]?.message?.content?.trim() ?? "";
 
     cache.set(text, { value: summary, time: Date.now() });
 

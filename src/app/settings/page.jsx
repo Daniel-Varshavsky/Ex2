@@ -64,6 +64,26 @@ export default function Settings() {
 
         {saved && <div className="settingsSaved">✓ API key saved</div>}
       </section>
+      <section className="settingsCard">
+        <button
+          className="btn btnPrimary"
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/vercel", { method: "POST" });
+              const data = await res.json();
+              if (res.ok) {
+                alert(`Deployment started! Preview at ${data.url}`);
+              } else {
+                alert(`Deployment failed: ${data.error}`);
+              }
+            } catch (e) {
+              alert(`Error: ${e.message}`);
+            }
+          }}
+        >
+          Deploy to Vercel
+        </button>
+      </section>
     </main>
   );
 }

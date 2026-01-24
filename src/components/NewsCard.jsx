@@ -24,7 +24,7 @@ export default function NewsCard({ repo }) {
   repo.avatar ||
   (repo.source === "huggingface"
     ? "/hf.svg"
-    : "/github.png");
+    : "/github.svg");
   const source = repo.source;
 
   const provider = localStorage.getItem("AI_PROVIDER") || "groq";

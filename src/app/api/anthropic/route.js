@@ -1,37 +1,62 @@
-import Anthropic from "@anthropic-ai/sdk";
+let cache = new Map();
+const TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function POST(req) {
-  const apiKey = req.headers.get("x-api-key");
-  if (!apiKey) {
-    return Response.json({ error: "Missing API key" }, { status: 401 });
-  }
+  try {
+    const { text } = await req.json();
+    const apiKey = req.headers.get("x-api-key");
 
-  const { text } = await req.json();
+    if (!apiKey || !text) {
+      return Response.json({ error: "Missing input" }, { status: 400 });
+    }
 
-  const client = new Anthropic({ apiKey });
+    // Cache check
+    const cached = cache.get(text);
+    if (cached && Date.now() - cached.time < TTL) {
+      return Response.json({ summary: cached.value });
+    }
 
-  const response = await client.messages.create({
-    model: "claude-3-haiku-20240307",
-    max_tokens: 100,
-    temperature: 0.3,
-    system: `
-You are a summarization assistant.
-
-SKILL: Summarization
-- Output exactly 3 short bullet points
-- Always respond in English
-- Do not add introductions or explanations
-- Do not mention that this is a summary
-`,
-    messages: [
-      {
-        role: "user",
-        content: text,
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "anthropic-version": "2023-06-01",
       },
-    ],
-  });
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-20241022",
+        max_tokens: 100,
+        temperature: 0.3,
+        // ✅ CONSISTENT PROMPTING - matches Groq/ChatGPT exactly
+        messages: [
+          {
+            role: "user",
+            content: `Summarize the following text in English, in 3 short lines. Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}`,
+          },
+        ],
+      }),
+    });
 
-  const summary = response.content[0].text.trim();
+    const j = await r.json();
 
-  return Response.json({ summary });
+    if (!r.ok) {
+      console.error("Anthropic error:", j);
+      return Response.json(
+        { error: j.error?.message || "Anthropic request failed" },
+        { status: r.status }
+      );
+    }
+
+    const summary = j.content?.[0]?.text?.trim() ?? "";
+
+    cache.set(text, { value: summary, time: Date.now() });
+
+    return Response.json({ summary });
+  } catch (err) {
+    console.error("Anthropic summarize error:", err);
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
