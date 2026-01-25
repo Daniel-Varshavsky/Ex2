@@ -11,12 +11,12 @@ A modern web application that aggregates and displays trending AI/ML repositorie
 
 ### Main Application
 
-![AI Trends Main Page](public/main-page.jpg)
+![AI Trends Main Page](./public/main-page.jpeg)
 _The main page showing aggregated AI/ML trends from GitHub and Hugging Face with summarization features_
 
 ### Settings & Configuration
 
-![Settings Page](public/settings-page.jpg)
+![Settings Page](./public/settings-page.jpeg)
 _Settings page for configuring AI providers and deployment options_
 
 ## ✨ Features
