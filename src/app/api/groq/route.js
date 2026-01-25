@@ -16,6 +16,16 @@ export async function POST(req) {
       return Response.json({ summary: cached.value });
     }
 
+    // Enhanced prompt for better handling of truncated content
+    let prompt = "Summarize the following text in English, in 3 short lines. Do NOT add any extra words like \"Here's a summary\". Only summarize the content";
+    
+    // Add special instruction for truncated content
+    if (text.includes("[README truncated") || text.includes("... [README truncated]")) {
+      prompt += ". Note: This content was truncated from a larger document, so focus on the main topics covered";
+    }
+    
+    prompt += ":\n\n";
+
     const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -25,7 +35,7 @@ export async function POST(req) {
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
-          { role: "user", content: `Summarize the following text in English, in 3 short sentences (no more than 100 characters). Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}` }
+          { role: "user", content: prompt + text }
         ],
       }),
     });
@@ -45,7 +55,7 @@ export async function POST(req) {
 
     return Response.json({ summary });
   } catch (err) {
-    console.error("Groq summarize error:", err);
+    console.log("Groq summarize error:", err);
     return Response.json(
       { error: "Internal server error" },
       { status: 500 }

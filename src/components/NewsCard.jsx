@@ -84,8 +84,41 @@ export default function NewsCard({ repo }) {
           
           if (readmeRes.ok) {
             const data = await readmeRes.json();
-            textToSummarize = data.readme;
-            console.log(`✅ ${source.toUpperCase()} README fetched, length:`, textToSummarize.length);
+            let readmeContent = data.readme;
+            
+            // Handle large README files - truncate if necessary
+            const maxReadmeLength = 8000; // Safe limit for most AI APIs
+            if (readmeContent.length > maxReadmeLength) {
+              console.log(`📝 ${source.toUpperCase()} README: Large file (${readmeContent.length} chars), truncating to ${maxReadmeLength}`);
+              
+              // Try to truncate at a reasonable point (paragraph or section break)
+              const truncatedContent = readmeContent.substring(0, maxReadmeLength);
+              const lastParagraph = truncatedContent.lastIndexOf('\n\n');
+              const lastSentence = truncatedContent.lastIndexOf('. ');
+              
+              if (lastParagraph > maxReadmeLength * 0.7) {
+                // Truncate at paragraph break if it's not too early
+                readmeContent = truncatedContent.substring(0, lastParagraph) + '\n\n[README truncated - this covers the main sections]';
+              } else if (lastSentence > maxReadmeLength * 0.8) {
+                // Truncate at sentence break
+                readmeContent = truncatedContent.substring(0, lastSentence + 1) + ' [README truncated]';
+              } else {
+                // Just truncate and add note
+                readmeContent = truncatedContent + '... [README truncated]';
+              }
+              
+              console.log(`📝 ${source.toUpperCase()} README: Truncated to ${readmeContent.length} characters`);
+            }
+            
+            textToSummarize = readmeContent;
+            
+            // Additional validation - if README is too short, use fallback
+            if (textToSummarize.trim().length < 100) {
+              console.log(`📝 ${source.toUpperCase()} README: Too short (${textToSummarize.length} chars), using fallback`);
+              throw new Error("README too short, using knowledge-based summary");
+            }
+            
+            console.log(`✅ ${source.toUpperCase()} README fetched, final length:`, textToSummarize.length);
           } else {
             // Handle any HTTP error (including 500)
             console.warn(`⚠️ ${source.toUpperCase()} README fetch failed:`, readmeRes.status);
@@ -139,7 +172,8 @@ export default function NewsCard({ repo }) {
         provider: provider,
         endpoint: endpoint,
         textLength: textToSummarize.length,
-        textPreview: textToSummarize.substring(0, 100) + "..."
+        textPreview: textToSummarize.substring(0, 100) + "...",
+        isTruncated: textToSummarize.includes("[README truncated")
       });
 
       const res = await fetch(endpoint, {

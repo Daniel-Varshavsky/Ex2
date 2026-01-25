@@ -16,6 +16,16 @@ export async function POST(req) {
       return Response.json({ summary: cached.value });
     }
 
+    // Enhanced prompt for better handling of truncated content
+    let prompt = "Summarize the following text in English, in 3 short lines. Do NOT add any extra words like \"Here's a summary\". Only summarize the content";
+    
+    // Add special instruction for truncated content
+    if (text.includes("[README truncated") || text.includes("... [README truncated]")) {
+      prompt += ". Note: This content was truncated from a larger document, so focus on the main topics covered";
+    }
+    
+    prompt += ":\n\n" + text;
+
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -25,13 +35,12 @@ export async function POST(req) {
       },
       body: JSON.stringify({
         model: "claude-3-5-haiku-20241022",
-        max_tokens: 100,
+        max_tokens: 150, // Increased slightly for better summaries of truncated content
         temperature: 0.3,
-        // ✅ CONSISTENT PROMPTING - matches Groq/ChatGPT exactly
         messages: [
           {
             role: "user",
-            content: `Summarize the following text in English, in 3 short lines. Do NOT add any extra words like "Here's a summary". Only summarize the content:\n\n${text}`,
+            content: prompt,
           },
         ],
       }),
@@ -40,7 +49,7 @@ export async function POST(req) {
     const j = await r.json();
 
     if (!r.ok) {
-      console.error("Anthropic error:", j);
+      console.log("Anthropic error:", j);
       return Response.json(
         { error: j.error?.message || "Anthropic request failed" },
         { status: r.status }
@@ -53,7 +62,7 @@ export async function POST(req) {
 
     return Response.json({ summary });
   } catch (err) {
-    console.error("Anthropic summarize error:", err);
+    console.log("Anthropic summarize error:", err);
     return Response.json(
       { error: "Internal server error" },
       { status: 500 }
