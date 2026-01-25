@@ -11,9 +11,8 @@ function formatStars(n) {
 
 export default function NewsCard({ repo }) {
   const [desc, setDesc] = useState(
-    // For both GitHub and HuggingFace, show placeholder if we have README URL
-    (repo.source === "huggingface" && repo.description.startsWith("http")) || 
-    (repo.source === "github" && repo.readme_url)
+    // Only show placeholder for HuggingFace models with README URLs
+    repo.source === "huggingface" && repo.description.startsWith("http")
       ? "Click on summarize to get detailed description." 
       : repo?.description || "No description provided."
   );
@@ -97,13 +96,15 @@ export default function NewsCard({ repo }) {
         } catch (readmeError) {
           console.log(`📝 ${source.toUpperCase()} README: Access failed -`, readmeError.message);
           
-          // Fallback: Use repository/model information
+          // Fallback: Try to summarize the webpage instead
+          console.log(`🌐 ${source.toUpperCase()}: Trying webpage summarization fallback for`, url);
+          
           if (source === "huggingface") {
-            textToSummarize = `${title} is a ${lang || 'machine learning'} model on Hugging Face with ${stars} likes. This is a ${lang || 'AI'} model for machine learning applications.`;
+            textToSummarize = `Please provide a brief technical summary of this Hugging Face model: ${title}. This is a ${lang || 'machine learning'} model with ${stars} likes. Focus on what type of AI model this is and what it's used for.`;
           } else {
-            textToSummarize = `${title} is a GitHub repository for ${lang || 'software development'} with ${stars} stars. ${repo.description && repo.description !== "No description provided." ? "Description: " + repo.description : ""}`;
+            textToSummarize = `Please provide a brief technical summary of this GitHub repository: ${title}. This is a ${lang || 'software'} project with ${stars} stars. ${repo.description && repo.description !== "No description provided." ? "Current description: " + repo.description + ". " : ""}Focus on what this software does and its main features.`;
           }
-          console.log(`📝 Using ${source} fallback text for summarization`);
+          console.log(`🌐 Using ${source} webpage summarization prompt`);
         }
       } else {
         // Use the existing description (for cases where README URL isn't available)
@@ -126,8 +127,12 @@ export default function NewsCard({ repo }) {
 
       // Final validation and fallback
       if (!textToSummarize || textToSummarize.trim() === "" || textToSummarize === "No description provided.") {
-        textToSummarize = `${title} is a ${source === 'github' ? 'GitHub repository' : 'Hugging Face model'} for ${lang || 'software development'} with ${stars} stars/likes.`;
-        console.log("🔄 Using generic fallback text:", textToSummarize);
+        if (source === "github") {
+          textToSummarize = `Please provide a brief summary of this GitHub repository: ${title}. This is a ${lang || 'software'} project with ${stars} stars. Focus on what this software does based on its name and programming language.`;
+        } else {
+          textToSummarize = `Please provide a brief summary of this Hugging Face model: ${title}. This is a ${lang || 'AI'} model with ${stars} likes. Focus on what type of AI model this is and its applications.`;
+        }
+        console.log("🌐 Using AI knowledge-based fallback");
       }
 
       console.log("📤 Sending to AI:", {
