@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 let cache = {
   data: null,
   timestamp: 0,
@@ -80,13 +82,13 @@ export async function GET() {
       const [owner, ...modelParts] = model.id.split('/');
       
       // Enhanced description generation
-      let description = generateDescription(model);
+      //let description = generateDescription(model);
       
       return {
         id: `hf-${model.id}`,
         source: 'huggingface',
         title: model.id,
-        description,
+        description: `https://huggingface.co/${model.id}/raw/main/README.md`,
         url: `https://huggingface.co/${model.id}`,
         stars: model.likes || 0,
         language: model.pipeline_tag || (model.library && model.library[0]) || '',
@@ -202,4 +204,36 @@ function cleanDescription(description) {
   }
   
   return description;
+}
+
+export async function POST(req) {
+  try {
+    const { url } = await req.json();
+
+    if (!url) {
+      return NextResponse.json(
+        { error: "URL is required" },
+        { status: 400 }
+      );
+    }
+
+    const res = await fetch(url);
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch README" },
+        { status: res.status }
+      );
+    }
+
+    const readme = await res.text();
+
+    return NextResponse.json({ readme });
+  } catch (err) {
+    console.error("HuggingFace README fetch error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

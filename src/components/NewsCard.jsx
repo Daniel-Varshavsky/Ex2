@@ -11,8 +11,11 @@ function formatStars(n) {
 
 export default function NewsCard({ repo }) {
   const [desc, setDesc] = useState(
-    repo?.description || "No description provided."
+    repo.source === "huggingface"
+      ? repo.description.startsWith("http") ? "Click on summarize to get proper description." : repo.description
+      : repo?.description || "No description provided."
   );
+
   const [loading, setLoading] = useState(false);
 
   const title = repo.title;
@@ -26,6 +29,7 @@ export default function NewsCard({ repo }) {
     ? "/hf.svg"
     : "/github.svg");
   const source = repo.source;
+  
 
   const provider = localStorage.getItem("AI_PROVIDER") || "groq";
 
@@ -36,7 +40,9 @@ export default function NewsCard({ repo }) {
   };
 
   const endpoint = endpointMap[provider];
-  
+
+  const README = repo.source === "huggingface"
+      ? repo.description : null
 
   async function summarize() {
     const now = Date.now();
@@ -56,13 +62,31 @@ export default function NewsCard({ repo }) {
     try {
       setLoading(true);
 
+      let readmeText = "";
+
+      if (source === "huggingface" && README && README.startsWith("http")) {
+        const readmeRes = await fetch("/api/huggingface", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: README }),
+        });
+        
+        if (readmeRes.ok) {
+          readmeText = await readmeRes.text();
+        } else {
+          setDesc("Failed to fetch README.");
+        }
+      }
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": key,
         },
-        body: JSON.stringify({ text: desc }),
+        body: JSON.stringify({ text: source === "huggingface" ? readmeText : desc }),
       });
 
       if (!res.ok) {
