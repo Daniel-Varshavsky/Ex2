@@ -7,6 +7,18 @@ A modern web application that aggregates and displays trending AI/ML repositorie
 - **Production (Auto-deploy)**: https://ex2-mauve-zeta.vercel.app/
 - **Manual Deploy**: https://ex2-1oms.vercel.app/
 
+## 📸 Screenshots
+
+### Main Application
+
+![AI Trends Main Page](./main-page.jpg)
+_The main page showing aggregated AI/ML trends from GitHub and Hugging Face with summarization features_
+
+### Settings & Configuration
+
+![Settings Page](./settings-page.jpg)
+_Settings page for configuring AI providers and deployment options_
+
 ## ✨ Features
 
 - **Dual Source Aggregation**: Fetches trending repositories from both GitHub and Hugging Face
@@ -181,10 +193,30 @@ VERCEL_DEPLOY_HOOK=your_vercel_deploy_hook_url
 
 ## 🎯 Usage
 
+### Main Interface
+
+As shown in the main page screenshot above:
+
 1. **Browse Trends**: The home page displays trending AI/ML projects from both GitHub and Hugging Face
+   - GitHub repositories are marked with a "GitHub" badge
+   - Hugging Face models are marked with a "Hugging Face" badge
+   - Each item shows stars/likes count, programming language, and owner information
+
 2. **Get Summaries**: Click "Summarize" on any item to get an AI-generated summary
+   - The app intelligently fetches README files and processes them
+   - Large files are automatically truncated for optimal AI processing
+   - Summaries are cached to avoid repeated API calls
+
 3. **Filter Content**: Items are automatically sorted by popularity (stars/likes)
 4. **Access Projects**: Click "Open" to visit the original repository or model page
+
+### Configuration
+
+As shown in the settings page screenshot:
+
+1. **AI Provider Setup**: Choose from Groq, OpenAI, or Anthropic
+2. **API Key Management**: Securely store your API keys locally
+3. **One-Click Deployment**: Deploy your changes directly from the settings page
 
 ## 🔍 How It Works
 
